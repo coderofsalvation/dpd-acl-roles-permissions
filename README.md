@@ -60,6 +60,7 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 	}
 }
 ```
+> NOTE: instead of combining all roles into one json, you can also put the resource-specific acl-code into `resources/foo/config.json`.
 
 *Final step*: put checks in your code
 
