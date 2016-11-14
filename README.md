@@ -21,11 +21,9 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
       read: ["admin"]               // cancel request if user does not have admin role 
       properties:{
         email:{                     // hide email when user does not have admin role
-        acl: {
-          read: ["admin"]
-        }
+        acl: { read: ["admin"] }
       }
-    })	
+    })  
 ```
 
 * `curl -X GET http://localhost/foo` will work (but without email for non-admin user  )
@@ -41,23 +39,23 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 
 ```
 {
-	"resources": {
-		"foo": {
+  "resources": {
+    "foo": {
       "acl": {
         "create": [ "admin", "user" ],
         "read": [ "*" ],
         "update": [ "admin" ],
         "delete": [ "admin" ]
       }, 
-			"properties": {
-				"email": {
+      "properties": {
+      "email": {
           "acl":{
             "read": [ "admin" ]
           }
-				}
-			}
-		}
-	}
+        }
+      }
+    }
+  }
 }
 ```
 > NOTE: instead of combining all roles into one json, you can also put the resource-specific acl-code into `resources/foo/config.json`.
@@ -67,7 +65,7 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 
 ```
-    ctx.acl( cancel, @, me )		// cancel request if method is not allowed 
+    ctx.acl( cancel, @, me )    // cancel request if method is not allowed 
                                 // and/or apply hide() or protect() on (nested) fields
 ```
 
