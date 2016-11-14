@@ -80,3 +80,7 @@ Add `acl` config to your Resource (in `resource/foo/config.js` e.g.):
         ...
       }
     }
+
+## TODO
+
+* build module ui with json editor which can edit all permissions of all resources (using json-extend)
