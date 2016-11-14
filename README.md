@@ -41,23 +41,23 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 
 ```
 {
-	"resources": {
-		"foo": {
+  "resources": {
+    "foo": {
       "acl": {
         "create": [ "admin", "user" ],
         "read": [ "*" ],
         "update": [ "admin" ],
         "delete": [ "admin" ]
       }, 
-			"properties": {
-				"email": {
+      "properties": {
+	"email": {
           "acl":{
             "read": [ "admin" ]
           }
-				}
-			}
-		}
 	}
+      }
+    }
+  }
 }
 ```
 
@@ -66,7 +66,7 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 
 ```
-    ctx.acl( cancel, @, me )		// cancel request if method is not allowed 
+    ctx.acl( cancel, @, me )	// cancel request if method is not allowed 
                                 // and/or apply hide() or protect() on (nested) fields
 ```
 
