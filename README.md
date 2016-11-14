@@ -48,10 +48,8 @@ You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
         "delete": [ "admin" ]
       }, 
       "properties": {
-      "email": {
-          "acl":{
-            "read": [ "admin" ]
-          }
+        "email": {
+          "acl":{ "read": [ "admin" ] }
         }
       }
     }
