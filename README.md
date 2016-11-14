@@ -2,7 +2,7 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
 ![Build Status](https://travis-ci.org/coderofsalvation/dpd-acl-roles-permissions.svg?branch=master)
 
-<img src="http://www.glasbergen.com/wp-content/gallery/security/security23.gif" width="300" style="width:300px"/>
+<img src="http://i.giphy.com/81xwEHX23zhvy.gif" width="150" style="width:150px"/>
 
 ## Usage 
 
