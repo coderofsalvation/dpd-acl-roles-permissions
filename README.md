@@ -36,9 +36,9 @@ Put a '`roles`'-property into '`resource/user/config.js`':
 
 ## Features 
 
-* method-specific (different settings for POST/GET/PUT/DELETE method)
-* resource-permissions and nested key-permissions
-* wrapper for hide() and protect()
+* restrict methods (POST/GET/PUT/DELETE method)
+* restrict (nested) key-permissions in incoming payloads (or outgoing results)
+* no need to use hide() and protect() anymore
 * works for all types of resource scripts
   
 ## method permissions/roles 
