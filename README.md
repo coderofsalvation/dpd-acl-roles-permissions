@@ -6,33 +6,72 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
 ## Usage 
 
-    $ npm install dpd-acl-roles-permissions --save
+    $ npm install dpd-acl-roles-permissions dpd-event --save
 
-Now put acl-checks in your events-code ( '`resource/user/get.js`' e.g.):
+## Method #1: manual roles-configuration
+
+* Run deployd and go to your dashboard 
+* Add a collection-resource called '`/foo`' with fields `name`, `email`
+* Add a roles-field in the properties-menu of the users-resource (with array-type: `["admin","user"]`)
+
+You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
+
+```
+    ctx.acl( cancel, @, me, {  
+      read: ["admin"]               // cancel request if user does not have admin role 
+      properties:{
+        email:{                     // hide email when user does not have admin role
+        acl: {
+          read: ["admin"]
+        }
+      }
+    })	
+```
+
+* `curl -X GET http://localhost/foo` will work (but without email for non-admin user  )
+* `curl -X POST http://localhost/foo` will only work for admin-user
+
+## Method #2: centralized roles-configuration
+
+* Run deployd and go to your dashboard 
+* Add a collection-resource called '`/foo`' with fields `name`, `email`
+* Add a roles-field in the properties-menu of the users-resource (with array-type: `["admin","user"]`)
+* Now add an '`event`'-resource with the name `/roles`
+* In the config-item paste the json below
+
+```
+{
+	"resources": {
+		"foo": {
+      "acl": {
+        "create": [ "admin", "user" ],
+        "read": [ "*" ],
+        "update": [ "admin" ],
+        "delete": [ "admin" ]
+      }, 
+			"properties": {
+				"email": {
+          "acl":{
+            "read": [ "admin" ]
+          }
+				}
+			}
+		}
+	}
+}
+```
+
+*Final step*: put checks in your code
+
+You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
 
 ```
     ctx.acl( cancel, @, me )		// cancel request if method is not allowed 
-                                    // and/or apply hide() or protect() on (nested) fields
+                                // and/or apply hide() or protect() on (nested) fields
 ```
 
-## Requirements
-
-Put a '`roles`'-property into '`resource/user/config.js`':
-
-		{
-			"type": "UserCollection",    
-			"properties": {              
-				"roles": {                 
-					"name": "roles",         
-					"type": "array",         
-					"typeLabel": "array",    
-					"required": false,       
-					"id": "roles",
-					"order": 0               
-				}
-				....
-			}
-		}
+* `curl -X GET http://localhost/foo` will work (but without email for non-admin user  )
+* `curl -X POST http://localhost/foo` will only work for admin-user
 
 ## Features 
 
@@ -40,47 +79,3 @@ Put a '`roles`'-property into '`resource/user/config.js`':
 * restrict (nested) key-permissions in incoming payloads (or outgoing results)
 * no need to use hide() and protect() anymore
 * works for all types of resource scripts
-  
-## method permissions/roles 
-
-Add `acl` config to your Resource (in `resource/foo/config.js` e.g.):
-
-    {                                                                                                                
-      "type": "Collection",                                                                                          
-      "acl": {                                                                                                                                                                                        
-        "create": ["admin"],    <-- allow POST method for me.roles["admin"]
-        "read":   ["*"],        <-- allow GET for everybody                       
-        "update": ["admin"],    <-- allow PUT for me.roles["admin"]
-        "delete": ["admin"]     <-- allow DELETE fro me.roles["admin"]
-       }                                                                 
-      "properties":{
-        ...
-      }
-    }
-
-> NOTE: don't forget to add some roles to it using the dashboard
-
-## (nested) keyvalue-pairs permissions/roles 
-
-Add `acl` config to your Resource (in `resource/foo/config.js` e.g.): 
-
-    {                                                                                                                
-      "type": "Collection",                                                                                          
-      "properties":{
-				"myRestrictedField": {
-					"acl": {                                                                                                                                                                                        
-						"create": ["admin"],    <-- delete myRestrictedField for non-adminroles POST-methods
-						"read":   ["*"],        <-- allow all fields for everybody's GET-methods                       
-						"update": ["admin"],    <-- delete myRestrictedField for non-adminroles PUT-methods
-						"delete": ["admin"]     <-- delete myRestrictedField for non-admin DELETE-method
-					}                                                                 
-					"type": "string"
-					...
-				}
-        ...
-      }
-    }
-
-## TODO
-
-* build module ui with json editor which can edit all permissions of all resources (using json-extend)

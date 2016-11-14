@@ -16,17 +16,26 @@
   Script.prototype.run = function(ctx, domain, fn) {
 
     if ( ctx ) {
-      ctx.acl = function(end,data,user,configKey){
+      ctx.acl = function(end,data,user,config){
 
 				var error
 				var operation
+				var aclConfig 
 				var roles = user && user.roles ? user.roles : []
 				var resourceName = this.req.url.split("/")[1]
 				var resourceConfig = this.dpd[ resourceName ].getResource().config
-				var aclConfig = this.dpd[ resourceName ].getResource().config
-				var aclConfig = configKey && pick(resourceConfig,configKey) ? 
-												pick(resourceConfig,configKey) :
-											  aclConfig	
+ 
+        try {
+          aclConfig = require( process.cwd() +'/resources/roles/config.json')
+          aclConfig = aclConfig.resources[resourceName] ? aclConfig.resources[resourceName] : aclConfig 
+        } catch (e) {
+          this.dpd[ resourceName ].getResource().config
+        }
+        if( config ){
+          if( typeof config == "string" && pick(resourceConfig,config) )
+            aclConfig = pick(resourceConfig,configKey)
+          else aclConfig = {acl:config }
+        }
 
 				switch( ctx.method ){
 					case "GET":    operation = "read";   break;
