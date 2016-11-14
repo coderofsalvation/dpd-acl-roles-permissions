@@ -12,7 +12,7 @@ Now put acl-checks in your events-code ( '`resource/user/get.js`' e.g.):
 
 ```
     ctx.acl( cancel, @, me )		// cancel request if method is not allowed 
-                                // and/or apply hide() or protect() on (nested) fields
+                                    // and/or apply hide() or protect() on (nested) fields
 ```
 
 ## Requirements
@@ -69,10 +69,10 @@ Add `acl` config to your Resource (in `resource/foo/config.js` e.g.):
       "properties":{
 				"myRestrictedField": {
 					"acl": {                                                                                                                                                                                        
-						"create": ["admin"],    <-- allow POST method for me.roles["admin"]
-						"read":   ["*"],        <-- allow GET for everybody                       
-						"update": ["admin"],    <-- allow PUT for me.roles["admin"]
-						"delete": ["admin"]     <-- allow DELETE fro me.roles["admin"]
+						"create": ["admin"],    <-- delete myRestrictedField for non-adminroles POST-methods
+						"read":   ["*"],        <-- allow all fields for everybody's GET-methods                       
+						"update": ["admin"],    <-- delete myRestrictedField for non-adminroles PUT-methods
+						"delete": ["admin"]     <-- delete myRestrictedField for non-admin DELETE-method
 					}                                                                 
 					"type": "string"
 					...
