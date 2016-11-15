@@ -54,8 +54,10 @@
  
     // try central configuration from 'roles'-resource
 		aclConfig = getResourceConfig(resourceName)
+
     if( !aclConfig || !aclConfig[this.method] ) return
 
+    console.dir(aclConfig)
 		if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
 			end( "no permission", 401)
  

@@ -2,6 +2,24 @@ var monkeypatch = require('monkeypatch')
 var Script
 var Collection
 
+// mock resourceConfig
+fooConfig = {
+  "foo":{
+    "GET":["*"], 
+    "POST":["admin","staff","premium"], 
+    "PUT":["admin","staff","premium"], 
+    "DELETE":["admin","staff","premium"], 
+    "properties":{
+      "dbKey3": {
+        "GET": ["admin"], 
+        "POST": ["admin"], 
+        "PUT": ["admin"], 
+        "DELETE": ["admin"]
+      }
+    }
+  }
+}
+
 // patch require()
 monkeypatch( require('module').prototype,'require', function(original, modname ){
   if( modname == 'deployd/lib/script' ){
@@ -10,10 +28,15 @@ monkeypatch( require('module').prototype,'require', function(original, modname )
     Script.prototype.run = function(){ }
     return Script
   }
+  if( modname == "/mnt/data/home/sqz/projects/dpd-acl-roles-permissions/resources/roles/config.json" ){
+    return JSON.parse( JSON.stringify(fooConfig))
+  }
   if( modname == 'deployd/lib/resources/collection' ){
     if( Collection ) return Collection
     Collection = function(){}
     Collection.prototype.run = function(){ }
+    Collection.prototype.find = function(){ }
+    Collection.prototype.handle = function(){ }
     return Collection
   }
   return original(modname)
@@ -24,31 +47,17 @@ var Script = require('deployd/lib/script')
 var Collection = require('deployd/lib/resources/collection')
 eval( require('fs').readFileSync('./index.js').toString() )
 
-// mock resourceConfig
-fooConfig = {
-  "type": "Collection",
-  "properties":{
-    "dbKey3": {
-      "acl":{
-        "read": ["admin"], 
-        "create": ["admin"], 
-        "update": ["admin"], 
-        "delete": ["admin"]
-      } 
-    }
-  }
-}
-
 // mock context
 var ctx = {
   method: "GET",
   req: {
     url: "/foo"
   },
+  session: { user: false }, 
   dpd: {
     foo: {
       getResource : function(){ 
-        return {config: fooConfig } 
+        return {config: fooConfig.foo } 
       }
     }
   }
@@ -89,13 +98,9 @@ users.map( function(user){
   console.log("\n## Testing for user "+ (user.roles ? user.roles[0] : "none" )+"\n")
   methods.map( function(method){
 
-    var operation
-    if( method == "GET" )    operation = "read"
-    if( method == "POST" )   operation = "create"
-    if( method == "PUT" )    operation = "update"
-    if( method == "DELETE" ) operation = "delete"
     ctx.method = method
 
+      /*
     console.log("TEST "+method+": simply pass data")
     var clonedData = clone(data)
     ctx.acl( cancelShouldNotBeCalled, clonedData, user )
@@ -105,16 +110,14 @@ users.map( function(user){
 
       console.log("TEST "+method+": do not pass data")
       var cancelCalled = false
-      fooConfig.acl = {}
-      fooConfig.acl[operation] = ["admin"]
-      ctx.acl( function(){ cancelCalled = true }, data, user )
+      fooConfig.foo[method] = ["admin"]
+      ctx.acl( function(){ cancelCalled = true }, data )
       if( !cancelCalled ) throw 'data shouldnt have been passed'
-      delete fooConfig.acl
 
       console.log("TEST "+method+": don't allow passing 'dbKey3' data")
       var clonedData = clone(data)
       clonedData.dbKey3 = "admin only"
-      ctx.acl( cancelShouldNotBeCalled, clonedData, user )
+      ctx.acl( cancelShouldNotBeCalled, clonedData )
       if( clonedData.dbKey3 ) throw 'dbKey3 should have been removed'
 
       console.log("TEST "+method+": don't allow passing 'dbKey3' data in array")
@@ -122,8 +125,8 @@ users.map( function(user){
       clonedData.dbKey3 = "admin only"
       ctx.acl( cancelShouldNotBeCalled, clonedData, user )
       if( clonedData[0].dbKey3 ) throw 'dbKey3 should have been removed from element 0'
-
     }
+*/
 
   })
 })
