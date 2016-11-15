@@ -13,6 +13,7 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 * Run deployd and go to your dashboard 
 * Add a collection-resource called '`/my-endpoint`' with fields `name`, `email`
 * Add a roles-field in the properties-menu of the users-resource (array value: `["admin","staff","premium"]`)
+* Set the username to 'admin'
 
 <center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-1.png"/></center>
 
@@ -43,7 +44,7 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 * `curl -X GET http://localhost/my-endpoint` will work (but without 'email'-field for non-role users )
 * `curl -X POST http://localhost/my-endpoint` will only work for user with admin- or staff- or premium-roles
 
-## Automatic filter results by owner 
+## Automatically filter results by owner 
 
 `dpd-acl-roles-permissions` has an integration for [dpd-collection-systemfields](https://npmjs.org/package/dpd-collection-systemfields).
 It allows you to easily setup endpoints which return owned-only results:
@@ -70,9 +71,25 @@ It allows you to easily setup endpoints which return owned-only results:
 }
 ```
 
+## Automatically filter results by group
+
+> NOTE: this feature needs the *dpd-collection-systemfields* module mentioned above 
+
+You can filter results by roles too (lets say 'staff'):
+
+* create a `roles`-array property in a collection-resource `["staff"]`
+* create a `public`-boolean property in a collection-resource
+
+Now for non logged-in users:
+
+* `curl -X GET http://localhost/my-endpoint` will return records with an empty roles-field and/or public=true field .
+
+And for logged-in users:
+
+* `curl -X GET http://localhost/my-endpoint` will return own records and/or records of which the roles-values match the current user-roles field 
+
 ## Features 
 
 * restrict methods (POST/GET/PUT/DELETE method)
 * restrict (nested) key-permissions in incoming payloads (or outgoing results)
 * no need to use hide() and protect() all over the place 
-* works for all types of resource scripts

@@ -39,7 +39,7 @@
   }
 
   var getResourceNameFromUrl = function(url){
-    return url.split("/")[1]
+    return url.split("/")[1].replace(/\?.*/, "")
   }
 
   var acl = function(end,data,config){
@@ -57,7 +57,6 @@
 
     if( !aclConfig || !aclConfig[this.method] ) return
 
-    console.dir(aclConfig)
 		if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
 			end( "no permission", 401)
  
@@ -81,15 +80,35 @@
 
 	monkeypatch( Collection.prototype,'find',function(original,ctx,fn){
     var resourceName = getResourceNameFromUrl(ctx.req.url)
+    var resourceConfig = ctx.dpd[ resourceName ].getResource().config
     var aclConfig = getResourceConfig(resourceName)
-    if( aclConfig && aclConfig.properties && 
+    if( ctx.query.roles ) delete ctx.query.roles // don't allow specifying roles in url *security*
+    if( !ctx.session.isRoot && aclConfig && aclConfig.properties && 
       aclConfig.properties.createdBy &&
       aclConfig.properties.createdBy.restrict ){
       if( ctx.session.user && ctx.session.user.id ){
-        ctx.query = ctx.query ? ctx.query : {}
-        ctx.query.createdBy = ctx.session.user.id
-      }else return cancel.apply(ctx, ["unknown user / not logged in"])  
+        if( ctx.session.user.username != "admin" ){
+          ctx.query = ctx.query ? ctx.query : {}
+          ctx.query.createdBy = ctx.session.user.id
+          if( resourceConfig.properties.roles && ctx.session.user.roles ){
+            // wrap into or statement
+            ctx.session.user.roles.push( ctx.session.user.id )
+            ctx.query["$or"] = [ {createdBy:ctx.query.createdBy}, {
+              roles: {"$in": ctx.session.user.roles}
+            }]
+            delete ctx.query.createdBy
+          }
+        }
+      }else{
+        if( resourceConfig.properties.roles ){
+          ctx.query.roles = {"$exists": false}
+          ctx.query.public = true
+        }else{
+          cancel.apply(ctx,  ["unknown user / not logged in"])
+        }
+      }
     }
+
 		original(ctx,function(err,result){
 			acl.apply( ctx, [cancel.bind(ctx), result ] )
 			fn(err,result)
