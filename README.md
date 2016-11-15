@@ -8,71 +8,71 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
     $ npm install dpd-acl-roles-permissions dpd-event --save
 
-## Method #1: manual roles-configuration
+## Centralized roles-configuration
 
 * Run deployd and go to your dashboard 
-* Add a collection-resource called '`/foo`' with fields `name`, `email`
-* Add a roles-field in the properties-menu of the users-resource (with array-type: `["admin","user"]`)
+* Add a collection-resource called '`/my-endpoint`' with fields `name`, `email`
+* Add a roles-field in the properties-menu of the users-resource (array value: `["admin","staff","premium"]`)
 
-You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
+<center><img src="doc/dpd-1.png"/></center>
 
-```
-    ctx.acl( cancel, @, me, {  
-      read: ["admin"]               // cancel request if user does not have admin role 
-      properties:{
-        email:{                     // hide email when user does not have admin role
-        acl: { read: ["admin"] }
-      }
-    })  
-```
+* Now add an '`event`'-resource in the left menu (green button) with the name `/roles`
 
-* `curl -X GET http://localhost/foo` will work (but without email for non-admin user  )
-* `curl -X POST http://localhost/foo` will only work for admin-user
+<center><img src="doc/dpd-2.png"/></center>
 
-## Method #2: centralized roles-configuration
-
-* Run deployd and go to your dashboard 
-* Add a collection-resource called '`/foo`' with fields `name`, `email`
-* Add a roles-field in the properties-menu of the users-resource (with array-type: `["admin","user"]`)
-* Now add an '`event`'-resource with the name `/roles`
 * In the config-item paste the json below
 
-```
+``````
 {
-  "resources": {
-    "foo": {
-      "acl": {
-        "create": [ "admin", "user" ],
-        "read": [ "*" ],
-        "update": [ "admin" ],
-        "delete": [ "admin" ]
-      }, 
-      "properties": {
-        "email": {
-          "acl":{ "read": [ "admin" ] }
-        }
+  "my-endpoint": {
+    "GET":    "*",
+    "POST":   "admin,staff,premium",
+    "PUT":    "admin,staff,premium",
+    "DELETE": "admin,staff,premium",
+    "properties": {
+      "email": {
+        "GET":  "admin,staff,premium",
+        "POST": "admin,staff,premium",
+        "PUT":  "admin,staff,premium"
       }
-    }
+    } 
   }
 }
 ```
-> NOTE: instead of combining all roles into one json, you can also put the resource-specific acl-code into `resources/foo/config.json`.
 
-*Final step*: put checks in your code
+* `curl -X GET http://localhost/my-endpoint` will work (but without 'email'-field for non-role users )
+* `curl -X POST http://localhost/my-endpoint` will only work for user with admin- or staff- or premium-roles
 
-You can put acl-checks in your events-code ( '`resource/foo/get.js`' e.g.):
+## Automatic filter results by owner 
 
+`dpd-acl-roles-permissions` has an integration for [dpd-collection-systemfields](https://npmjs.org/package/dpd-collection-systemfields).
+It allows you to easily setup endpoints which return owned-only results:
+
+* run `npm install dpd-collection-systemfields --save`
+* add at least the 'createdBy'-fields to all your collection-endpoints (see [docs](https://npmjs.org/package/dpd-collection-systemfields) )
+
+``````
+{
+  "my-endpoint": {
+    "GET":    "*",
+    "POST":   "admin,staff,premium",
+    "PUT":    "admin,staff,premium",
+    "DELETE": "admin,staff,premium",
+    "properties": {
+      "createdBy": {
+        "restrict": true,               <--- add this to filter *any* mongodb query on current user 
+        "GET":  "admin,staff,premium",
+        "POST": "admin,staff,premium",
+        "PUT":  "admin,staff,premium"
+      }
+    } 
+  }
+}
 ```
-    ctx.acl( cancel, @, me )    // cancel request if method is not allowed 
-                                // and/or apply hide() or protect() on (nested) fields
-```
-
-* `curl -X GET http://localhost/foo` will work (but without email for non-admin user  )
-* `curl -X POST http://localhost/foo` will only work for admin-user
 
 ## Features 
 
 * restrict methods (POST/GET/PUT/DELETE method)
 * restrict (nested) key-permissions in incoming payloads (or outgoing results)
-* no need to use hide() and protect() anymore
+* no need to use hide() and protect() all over the place 
 * works for all types of resource scripts

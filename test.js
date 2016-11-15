@@ -1,19 +1,27 @@
 var monkeypatch = require('monkeypatch')
 var Script
+var Collection
 
 // patch require()
 monkeypatch( require('module').prototype,'require', function(original, modname ){
-  if( modname != 'deployd/lib/script' ) return original(modname)
-  else { // Script mock object
+  if( modname == 'deployd/lib/script' ){
     if( Script ) return Script
     Script = function(){}
     Script.prototype.run = function(){ }
     return Script
   }
+  if( modname == 'deployd/lib/resources/collection' ){
+    if( Collection ) return Collection
+    Collection = function(){}
+    Collection.prototype.run = function(){ }
+    return Collection
+  }
+  return original(modname)
 })
 
 // include our script
 var Script = require('deployd/lib/script')
+var Collection = require('deployd/lib/resources/collection')
 eval( require('fs').readFileSync('./index.js').toString() )
 
 // mock resourceConfig
