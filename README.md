@@ -8,20 +8,19 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
     $ npm install dpd-acl-roles-permissions dpd-event --save
 
-## Centralized roles-configuration
+## Centralized configuration
 
 * Run deployd and go to your dashboard 
-* Add a collection-resource called '`/my-endpoint`' with fields `name`, `email`
-* Add a roles-field in the properties-menu of the users-resource (array value: `["admin","staff","premium"]`)
-* Set the username to 'admin'
+* Make sure you have a users-collection resource 
+* Add a `roles`-property in there (array value: `["admin","staff","premium"]`) and set username to 'admin'
 
 <center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-1.png"/></center>
 
-* Now add an '`event`'-resource in the left menu (green button) with the name `/roles`
+* Hit the green button, and add an '`event`'-resource (name: `/roles`)
 
 <center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-2.png?23"/></center>
 
-* In the config-item paste the json below
+* In the `CONFIG.JSON`-screen paste the json below
 
 ``````
 {
@@ -41,8 +40,12 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 }
 ```
 
-* `curl -X GET http://localhost/my-endpoint` will work (but without 'email'-field for non-role users )
-* `curl -X POST http://localhost/my-endpoint` will only work for user with admin- or staff- or premium-roles
+Done!
+
+* `curl -X GET http://localhost/my-endpoint` will now work (but hides 'email'-field for users without 'admin' or 'staff' or 'premium'-role )
+* `curl -X POST http://localhost/my-endpoint` will now only work for user with admin- or staff- or premium-roles
+
+> NOTE: feel free to play around with the config
 
 ## Automatically filter results by owner 
 
@@ -73,20 +76,22 @@ It allows you to easily setup endpoints which return owned-only results:
 
 ## Automatically filter results by group
 
-> NOTE: this feature needs the *dpd-collection-systemfields* module mentioned above 
+We can 'abuse' roles to act as organisations- or groups too.
 
-You can filter results by roles too (lets say 'staff'):
+> NOTE: this feature requires the *dpd-collection-systemfields* module mentioned above 
 
-* create a `roles`-array property in a collection-resource `["staff"]`
+Here's how to easily filter results based on roles (lets say 'staff'):
+
+* add a `roles`-array property in a collection-resource `["staff"]`
 * create a `public`-boolean property in a collection-resource
 
 Now for non logged-in users:
 
-* `curl -X GET http://localhost/my-endpoint` will return records with an empty roles-field and/or public=true field .
+* `curl -X GET http://localhost/my-endpoint` will return records with no roles, or public=true
 
-And for logged-in users:
+Now for logged-in users:
 
-* `curl -X GET http://localhost/my-endpoint` will return own records and/or records of which the roles-values match the current user-roles field 
+* `curl -X GET http://localhost/my-endpoint` will return own records and/or records with matching roles
 
 ## Features 
 
