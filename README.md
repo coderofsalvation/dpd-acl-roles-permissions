@@ -14,11 +14,11 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 * Add a collection-resource called '`/my-endpoint`' with fields `name`, `email`
 * Add a roles-field in the properties-menu of the users-resource (array value: `["admin","staff","premium"]`)
 
-<center><img src="doc/dpd-1.png"/></center>
+<center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-1.png"/></center>
 
 * Now add an '`event`'-resource in the left menu (green button) with the name `/roles`
 
-<center><img src="doc/dpd-2.png"/></center>
+<center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-2.png"/></center>
 
 * In the config-item paste the json below
 
