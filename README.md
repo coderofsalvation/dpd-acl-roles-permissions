@@ -18,7 +18,7 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
 * Now add an '`event`'-resource in the left menu (green button) with the name `/roles`
 
-<center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-2.png"/></center>
+<center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-2.png?23"/></center>
 
 * In the config-item paste the json below
 
