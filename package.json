@@ -1,6 +1,6 @@
 {
   "name": "dpd-acl-roles-permissions",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs for deployd",
   "main": "index.js",
   "repository": "https://www.github.com/coderofsalvation/dpd-acl-roles-permissions.git",
@@ -16,6 +16,7 @@
     "control"
   ],
   "dependencies": {
+    "debug": "^2.3.2",
     "monkeypatch": "^1.0.0"
   },
   "scripts": {

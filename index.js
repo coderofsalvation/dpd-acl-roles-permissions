@@ -27,7 +27,7 @@
 		return ok
 	}
 
-  var getResourceConfig = function(resourceName){
+  var getAclConfig = function(resourceName){
     try {
       var configFile = process.cwd() +'/resources/roles/config.json'
       aclConfig = require( configFile )
@@ -42,27 +42,27 @@
     return url.split("/")[1].replace(/\?.*/, "")
   }
 
-  var acl = function(end,data,config){
+  var acl = function(ctx,data,config){
     var error
     var operation
     var aclConfig 
     var user = this.session.user
 		userroles = user && user.roles ? user.roles : []
     var resourceName = getResourceNameFromUrl(this.req.url)
-    if( !this.dpd[ resourceName ] ) return
+    if( !resourceName || !this.dpd[ resourceName ] ) return
     var resourceConfig = this.dpd[ resourceName ].getResource().config
  
     // try central configuration from 'roles'-resource
-		aclConfig = getResourceConfig(resourceName)
+		aclConfig = getAclConfig(resourceName)
 
     if( !aclConfig || !aclConfig[this.method] ) return
 
 		if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
-			end( "no permission", 401)
- 
+			cancel.apply( this, ["no permission", 401])
+
     // hide collection properties
     var hideProperty = function(data,key,prop,method){
-      if( data[key] && prop && prop[method] ){
+      if( data && data[key] && prop && prop[method] ){
         if( !hasRole(userroles, prop[method].split(",") ) ) delete data[key]
       }
     }
@@ -80,29 +80,28 @@
 
 	monkeypatch( Collection.prototype,'find',function(original,ctx,fn){
     var resourceName = getResourceNameFromUrl(ctx.req.url)
+    if( !resourceName ) return
     var resourceConfig = ctx.dpd[ resourceName ].getResource().config
-    var aclConfig = getResourceConfig(resourceName)
+    var aclConfig = getAclConfig(resourceName)
     if( ctx.query.roles ) delete ctx.query.roles // don't allow specifying roles in url *security*
     if( !ctx.session.isRoot && aclConfig && aclConfig.properties && 
       aclConfig.properties.createdBy &&
       aclConfig.properties.createdBy.restrict ){
-      if( ctx.session.user && ctx.session.user.id ){
-        if( ctx.session.user.username != "admin" ){
-          ctx.query = ctx.query ? ctx.query : {}
-          ctx.query.createdBy = ctx.session.user.id
-          if( resourceConfig.properties.roles && ctx.session.user.roles ){
-            // wrap into or statement
-            ctx.session.user.roles.push( ctx.session.user.id )
-            ctx.query["$or"] = [ {createdBy:ctx.query.createdBy}, {
-              roles: {"$in": ctx.session.user.roles}
-            }]
-            delete ctx.query.createdBy
-          }
+      if( ctx.session.user && ctx.session.user.id && ctx.query.account ){
+        delete ctx.query.account
+        ctx.query = ctx.query ? ctx.query : {}
+        ctx.query.createdBy = ctx.session.user.id
+        if( resourceConfig.properties.roles && ctx.session.user.roles ){
+          // wrap into or statement
+          ctx.session.user.roles.push( ctx.session.user.id )
+          ctx.query["$or"] = [ {createdBy:ctx.query.createdBy}, {
+            roles: {"$in": ctx.session.user.roles}
+          }]
+          delete ctx.query.createdBy
         }
       }else{
         if( resourceConfig.properties.roles ){
-          ctx.query.roles = {"$exists": false}
-          ctx.query.public = true
+          ctx.query["$or"] = [{ roles: {"$exists": false} }, { public: true } ]
         }else{
           cancel.apply(ctx,  ["unknown user / not logged in"])
         }

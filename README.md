@@ -12,7 +12,7 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
 * Run deployd and go to your dashboard 
 * Make sure you have a users-collection resource 
-* Add a `roles`-property in there (array value: `["admin","staff","premium"]`) and set username to 'admin'
+* Add a `roles`-property in there (array value: `["admin","staff","premium"]`) and set username to '`admin`'
 
 <center><img src="https://raw.githubusercontent.com/coderofsalvation/dpd-acl-roles-permissions/dev/doc/dpd-1.png"/></center>
 
@@ -82,19 +82,21 @@ We can 'abuse' roles to act as organisations- or groups too.
 
 Here's how to easily filter results based on roles (lets say 'staff'):
 
-* add a `roles`-array property in a collection-resource `["staff"]`
-* create a `public`-boolean property in a collection-resource
+* add a `roles`-array property in a collection-resource with value: `["staff"]`
+* add a `public`-boolean property in there too 
 
 Now for non logged-in users:
 
-* `curl -X GET http://localhost/my-endpoint` will return records with no roles, or public=true
+* `curl -X GET http://localhost/my-endpoint` returns zero-role and public records 
 
 Now for logged-in users:
 
-* `curl -X GET http://localhost/my-endpoint` will return own records and/or records with matching roles
+* `curl -X GET http://localhost/my-endpoint` returns zero-role, public, owned and records with matching roles
+* `curl -X GET http://localhost/my-endpoint?account=1` returns only owned records and/or records with matching roles
 
 ## Features 
 
 * restrict methods (POST/GET/PUT/DELETE method)
 * restrict (nested) key-permissions in incoming payloads (or outgoing results)
 * no need to use hide() and protect() all over the place 
+* TODO: more tests
