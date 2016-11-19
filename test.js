@@ -39,7 +39,7 @@ monkeypatch( require('module').prototype,'require', function(original, modname )
     Script.prototype.run = function(){ }
     return Script
   }
-  if( modname == "/mnt/data/home/sqz/projects/dpd-acl-roles-permissions/resources/roles/config.json" ){
+  if( modname.match("resources/roles/config.json") != null ){
     return JSON.parse( JSON.stringify(fooConfig))
   }
   if( modname == 'deployd/lib/resources/collection' ){
