@@ -6,7 +6,7 @@ var lastMongoQuery
 // mock resourceConfig
 fooConfig = {
   "foo":{
-    "GET":"admin", 
+    "GET":"admin,staff", 
     "POST":"admin,staff,premium", 
     "PUT":"admin,staff,premium", 
     "DELETE":"admin,staff,premium", 
@@ -19,6 +19,12 @@ fooConfig = {
         "DELETE": "admin"
       }, 
       "dbKey3": {
+        "GET": "staff", 
+        "POST": "staff", 
+        "PUT": "staff", 
+        "DELETE": "staff"
+      }, 
+      "dbKey4": {
         "GET": "admin", 
         "POST": "admin", 
         "PUT": "admin", 
@@ -39,7 +45,7 @@ monkeypatch( require('module').prototype,'require', function(original, modname )
     Script.prototype.run = function(){ }
     return Script
   }
-  if( modname.match("resources/roles/config.json") != null ){
+  if( modname.match("resources/roles/config.json") ){
     return JSON.parse( JSON.stringify(fooConfig))
   }
   if( modname == 'deployd/lib/resources/collection' ){
@@ -69,7 +75,7 @@ var ctx = {
   req: {
     url: "/foo"
   },
-  session: { user: false }, 
+  session: { user: false,isRoot:false }, 
   dpd: {
     foo: {
       getResource : function(){ 
@@ -84,6 +90,8 @@ Script.prototype.run(ctx,{},false) // attach acl function to ctx
 var data = {
   dbKey1: "dbKey1Value",
   dbKey2: "dbKey2Value", 
+  dbKey3: "dbKey3Value", 
+  dbKey4: "dbKey4Value", 
   roles: ["admin"]
 }
 
@@ -109,21 +117,28 @@ var equal = function(a,b){
  * test
  */
 var methods = ["GET", "POST", "DELETE", "PUT"]
-var users   = [false, {id:'123123', username: 'foo', roles:["admin"]} ]
+var users   = [false, {id:'123123', username: 'foo', roles:["staff"]}, "root" ]
 
 users.map( function(user){
-  console.log("\n## Testing for user "+ (user.roles ? user.roles[0] : "none" )+"\n")
+  var username
+  if( typeof user == "string" ) username = user
+  else username = user.username
+  console.log("\n## Testing for user "+ (username ? username : "anonymous")+"\n")
   methods.map( function(method){
 
     ctx.method = method
-    ctx.session = { user: user }
+    ctx.session = { user: user,isRoot: (user == "root") }
 
     var isAdmin = user && fooConfig.foo[method].match(/admin/) != null
-    console.log("TEST "+method+": "+(isAdmin ? "pass" : "block")+" data for user "+(user ? user.name : "none" ))
+    console.log("TEST "+method+": "+(isAdmin ? "pass" : "block")+" data for user "+username)
     var clonedData = clone(data)
     var cancelCalled = false
     ctx.done = function(){ cancelCalled=true }
     ctx.acl( clonedData )
+    if( ctx.session.user && ctx.session.user.roles && ctx.session.user.roles.indexOf("staff") && !clonedData.dbKey3 ) 
+      throw 'dbKey3 should have been there for user foo'
+    if( ctx.session.isRoot && !clonedData.dbKey4 ) 
+      throw 'dbKey4 should have been there for root user '
     if( (isAdmin && cancelCalled ) || (!isAdmin && !cancelCalled) ) 
       throw 'cancel was called for wrong reasons'
 
@@ -138,13 +153,11 @@ users.map( function(user){
 
       console.log("TEST "+method+": don't allow passing 'dbKey3' data")
       var clonedData = clone(data)
-      clonedData.dbKey3 = "admin only"
       ctx.acl( clonedData )
       if( clonedData.dbKey3 ) throw 'dbKey3 should have been removed'
 
       console.log("TEST "+method+": don't allow passing 'dbKey3' data in array")
       var clonedData = [clone(data)]
-      clonedData.dbKey3 = "admin only"
       ctx.acl( clonedData )
       if( clonedData[0].dbKey3 ) throw 'dbKey3 should have been removed from element 0'
     

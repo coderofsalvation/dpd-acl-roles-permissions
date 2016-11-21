@@ -43,6 +43,7 @@
   }
 
   var acl = function(ctx,data,config){
+    if( ctx.session && ctx.session.isRoot ) return
     var error
     var operation
     var aclConfig 
@@ -109,18 +110,21 @@
     }
 
 		original(ctx,function(err,result){
-			acl.apply( ctx, [cancel.bind(ctx), result ] )
+			if( ctx ) acl.apply( ctx, [ctx,result] )
 			fn(err,result)
 		})
 	})
 
 	monkeypatch( Collection.prototype, 'handle', function(original,ctx){
-    if( ctx ) acl.apply( ctx, [cancel.bind(ctx), {} ] )
+    if( ctx ) acl.apply( ctx, [ ctx, {} ] )
     original(ctx)
 	})
 
 	monkeypatch( Script.prototype,'run',function(original,ctx,domain,fn){
-    if ( ctx ) ctx.acl = acl.bind(ctx, ctx)
+    if( ctx ){
+       ctx.acl = acl.bind(ctx,ctx)
+       acl.apply( ctx, [ ctx, {} ] )
+    }
     original(ctx,domain,fn)
 	})
   
