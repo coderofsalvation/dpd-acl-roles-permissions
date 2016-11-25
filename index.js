@@ -39,7 +39,8 @@
   }
 
   var getResourceNameFromUrl = function(url){
-    return String(url).split("/")[1].replace(/\?.*/, "")
+    var str = String(url).split("/")
+    return str[1] ? str[1].replace(/\?.*/, "") : ""
   }
 
   var acl = function(ctx,data,config){
