@@ -94,6 +94,36 @@ Now for logged-in users:
 * `curl -X GET http://localhost/my-endpoint` returns zero-role, public, owned and records with matching roles
 * `curl -X GET http://localhost/my-endpoint?account=1` returns only owned records and/or records with matching roles
 
+## Writing tests 
+
+Testing endpoints can be done using [dpd-test](https://npmjs.org/package/dpd-test):
+
+    var dpdTest = require('dpd-test')
+    var request = require('superagent')
+    var port = 3030
+
+    dpdTest.run({
+      port: port, 
+      user: {username:"foo", "password":"bar", roles:["user"]},    // specify user/role
+      ready: function(dpd, done, sessionid ){
+
+        request                                                    // do request as user foo
+          .get('http://localhost:'+port+'/scraper')
+          .set('Cookie', 'sid='+sessionid)
+          .set('Content-Type',  'application/json')
+          .set('Accept',  'application/json')
+          .end(function(err,  res){
+            console.dir(res.body)
+            done()
+          })
+
+      }, 
+      done: function(err, database){
+        console.log("done") 
+        process.exit( err ? 1 : 0 )
+      } 
+    })
+
 ## Features 
 
 * restrict methods (POST/GET/PUT/DELETE method)
