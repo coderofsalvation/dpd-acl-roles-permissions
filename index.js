@@ -60,7 +60,7 @@
     if( !aclConfig || !aclConfig[this.method] ) return
 
 		if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
-			cancel.apply( this, ["no permission", 401])
+			cancel.apply( this, ["no permission / not loggedin (session expired)", 401])
 
     // hide collection properties
     var hideProperty = function(data,key,prop,method){
