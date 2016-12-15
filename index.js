@@ -48,7 +48,10 @@
     var error
     var operation
     var aclConfig 
-    var user = this.session && this.session.user ? this.session.user : {}
+    var user = this.session && this.session.user ? this.session.user : false
+    if( !user && ctx.req.user ) user = ctx.req.user
+    user = user ? user : {}
+
 		userroles = user && user.roles ? user.roles : []
     var resourceName = getResourceNameFromUrl(this.req.url)
     if( !resourceName || !this.dpd[ resourceName ] ) return
