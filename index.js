@@ -1,31 +1,31 @@
 (function(Script, Collection) {
 
-	var monkeypatch = require('monkeypatch')
+  var monkeypatch = require('monkeypatch')
 
   var pick = function(xs,x){
-		return String(x).split('.').reduce(function(acc, x) {
-			if (acc == null) {
-				return;
-			}
-			return acc[x];
-		}, xs);
-	}
+    return String(x).split('.').reduce(function(acc, x) {
+      if (acc == null) {
+        return;
+      }
+      return acc[x];
+    }, xs);
+  }
 
   var cancel = function(msg, code){
     code = code ? code : 401
     this.done(false, {message:msg, status:code, statusCode: code})
   }
 
-	var hasRole = function(userroles,roles){
-		var ok = false
-		if( roles.indexOf("*") != -1 ) return true
-		userroles.map( function(userrole){
-			roles.map( function(role){
-				if( userrole == role ) ok = true 
-			})
-		})
-		return ok
-	}
+  var hasRole = function(userroles,roles){
+    var ok = false
+    if( roles.indexOf("*") != -1 ) return true
+    userroles.map( function(userrole){
+      roles.map( function(role){
+        if( userrole == role ) ok = true 
+      })
+    })
+    return ok
+  }
 
   var getAclConfig = function(resourceName){
     try {
@@ -34,8 +34,8 @@
       aclConfig = aclConfig[resourceName] ? aclConfig[resourceName] : false
       return aclConfig
     }catch (e){
-			console.log('configFile '+configFile+' not found..please read the dpd-acl-roles-permissions README.md')
-		}
+      console.log('configFile '+configFile+' not found..please read the dpd-acl-roles-permissions README.md')
+    }
   }
 
   var getResourceNameFromUrl = function(url){
@@ -52,18 +52,18 @@
     if( !user && ctx.req.user ) user = ctx.req.user
     user = user ? user : {}
 
-		userroles = user && user.roles ? user.roles : []
+    userroles = user && user.roles ? user.roles : []
     var resourceName = getResourceNameFromUrl(this.req.url)
     if( !resourceName || !this.dpd[ resourceName ] ) return
     var resourceConfig = this.dpd[ resourceName ].getResource().config
  
     // try central configuration from 'roles'-resource
-		aclConfig = getAclConfig(resourceName)
+    aclConfig = getAclConfig(resourceName)
 
     if( !aclConfig || !aclConfig[this.method] ) return
 
-		if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
-			cancel.apply( this, ["no permission / not loggedin (session expired)", 401])
+    if( aclConfig[ this.method ] && !hasRole(userroles,aclConfig[ this.method ].split(",") ) )
+      cancel.apply( this, ["no permission / not loggedin (session expired)", 401])
 
     // hide collection properties
     var hideProperty = function(data,key,prop,method){
@@ -73,9 +73,9 @@
     }
     if( resourceConfig.properties ){
       for( var i in resourceConfig.properties ){
-				if( !aclConfig.properties ) continue
+        if( !aclConfig.properties ) continue
         var prop = aclConfig.properties[i]
-				if( !prop ) continue		
+        if( !prop ) continue    
         if( Array.isArray(data) ){
           for( var j in data ) hideProperty(data[j],i,prop,this.method)
         }else hideProperty(data,i,prop,this.method)
@@ -83,8 +83,8 @@
     }
   }
 
-	monkeypatch( Collection.prototype,'find',function(original,ctx,fn){
-    var resourceName = getResourceNameFromUrl(ctx.req.url)
+  monkeypatch( Collection.prototype,'find',function(original,ctx,fn){
+    var resourceName = String( getResourceNameFromUrl(ctx.req.url) ).replace(/-/g, '')
     if( !resourceName ) return
     var resourceConfig = ctx.dpd[ resourceName ].getResource().config
     var aclConfig = getAclConfig(resourceName)
@@ -113,23 +113,23 @@
       }
     }
 
-		original(ctx,function(err,result){
-			if( ctx ) acl.apply( ctx, [ctx,result] )
-			fn(err,result)
-		})
-	})
+    original(ctx,function(err,result){
+      if( ctx ) acl.apply( ctx, [ctx,result] )
+      fn(err,result)
+    })
+  })
 
-	monkeypatch( Collection.prototype, 'handle', function(original,ctx){
+  monkeypatch( Collection.prototype, 'handle', function(original,ctx){
     if( ctx ) acl.apply( ctx, [ ctx, {} ] )
     original(ctx)
-	})
+  })
 
-	monkeypatch( Script.prototype,'run',function(original,ctx,domain,fn){
+  monkeypatch( Script.prototype,'run',function(original,ctx,domain,fn){
     if( ctx ){
        ctx.acl = acl.bind(ctx,ctx)
        acl.apply( ctx, [ ctx, {} ] )
     }
     original(ctx,domain,fn)
-	})
+  })
   
 })(require('deployd/lib/script'), require('deployd/lib/resources/collection'));
