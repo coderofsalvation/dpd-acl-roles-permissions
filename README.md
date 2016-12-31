@@ -22,23 +22,21 @@ Easily configure roles/permissions regarding methods and (nested) keyvalue-pairs
 
 * In the `CONFIG.JSON`-screen paste the json below
 
-``````
-{
-  "my-endpoint": {
-    "GET":    "*",
-    "POST":   "admin,staff,premium",
-    "PUT":    "admin,staff,premium",
-    "DELETE": "admin,staff,premium",
-    "properties": {
-      "email": {
-        "GET":  "admin,staff,premium",
-        "POST": "admin,staff,premium",
-        "PUT":  "admin,staff,premium"
+    {
+      "my-endpoint": {
+        "GET":    "*",
+        "POST":   "admin,staff,premium",
+        "PUT":    "admin,staff,premium",
+        "DELETE": "admin,staff,premium",
+        "properties": {
+          "email": {
+            "GET":  "admin,staff,premium",
+            "POST": "admin,staff,premium",
+            "PUT":  "admin,staff,premium"
+          }
+        } 
       }
-    } 
-  }
-}
-```
+    }
 
 Done!
 
@@ -55,24 +53,22 @@ It allows you to easily setup endpoints which return owned-only results:
 * run `npm install dpd-collection-systemfields --save`
 * add at least the 'createdBy'-fields to all your collection-endpoints (see [docs](https://npmjs.org/package/dpd-collection-systemfields) )
 
-``````
-{
-  "my-endpoint": {
-    "GET":    "*",
-    "POST":   "admin,staff,premium",
-    "PUT":    "admin,staff,premium",
-    "DELETE": "admin,staff,premium",
-    "properties": {
-      "createdBy": {
-        "restrict": true,               <--- add this to filter *any* mongodb query on current user 
-        "GET":  "admin,staff,premium",
-        "POST": "admin,staff,premium",
-        "PUT":  "admin,staff,premium"
+    {
+      "my-endpoint": {
+        "GET":    "*",
+        "POST":   "admin,staff,premium",
+        "PUT":    "admin,staff,premium",
+        "DELETE": "admin,staff,premium",
+        "properties": {
+          "createdBy": {
+            "restrict": true,               <--- add this to filter *any* mongodb query on current user 
+            "GET":  "admin,staff,premium",
+            "POST": "admin,staff,premium",
+            "PUT":  "admin,staff,premium"
+          }
+        } 
       }
-    } 
-  }
-}
-```
+    }
 
 ## Automatically filter results by group
 
