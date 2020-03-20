@@ -40,7 +40,10 @@
 
   var getResourceNameFromUrl = function(url){
     var str = String(url).split("/")
-    return str[1] ? str[1].replace(/\?.*/, "") : ""
+    str.splice(0, 1);
+    let res = str.join('');
+    res =  res.replace('-', '');
+    return res ? res.replace(/\?.*/, "") : "";
   }
 
   var acl = function(ctx,data,config){
