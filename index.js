@@ -121,7 +121,7 @@
 
   monkeypatch( Collection.prototype, 'handle', function(original,ctx){
     if( ctx ) acl.apply( ctx, [ ctx, {} ] )
-    original(ctx)
+    if( !ctx.res.finished ) original(ctx)
   })
 
   monkeypatch( Script.prototype,'run',function(original,ctx,domain,fn){
@@ -129,7 +129,7 @@
        ctx.acl = acl.bind(ctx,ctx)
        acl.apply( ctx, [ ctx, {} ] )
     }
-    original(ctx,domain,fn)
+    if( !ctx.res.finished ) original(ctx,domain,fn)
   })
   
 })(require('deployd/lib/script'), require('deployd/lib/resources/collection'));
