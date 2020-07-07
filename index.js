@@ -13,7 +13,12 @@
 
   var cancel = function(msg, code){
     code = code ? code : 401
-    this.done(false, {message:msg, status:code, statusCode: code})
+    var message = { message: msg, status: code, statusCode: code };
+    if (code >= 300) {
+      this.done(message);
+    } else {
+      this.done(false, message);
+    }
   }
 
   var hasRole = function(userroles,roles){
