@@ -94,7 +94,7 @@
     var resourceConfig = ctx.dpd[ resourceName ].getResource().config
     var aclConfig = getAclConfig(resourceName)
     if( ctx.query.roles ) delete ctx.query.roles // don't allow specifying roles in url *security*
-    if( !ctx.session.isRoot && !ctx.session.internal && && aclConfig && aclConfig.properties && 
+    if( !ctx.session.isRoot && !ctx.session.internal && aclConfig && aclConfig.properties && 
       aclConfig.properties.createdBy &&
       aclConfig.properties.createdBy.restrict ){
       if( ctx.session.user && ctx.session.user.id && ctx.query.account ){
